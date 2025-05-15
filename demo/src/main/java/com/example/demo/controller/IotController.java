@@ -27,4 +27,13 @@ public class IotController {
         return ResponseEntity.ok(iotDataService.getSegregatedData());
     }
 
+    @RestController
+    public class HealthController {
+
+        @GetMapping("/")
+        public String health() {
+            return "✅ ForwardEndpoint is running!";
+        }
+    }
+
 }
