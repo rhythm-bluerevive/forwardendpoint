@@ -1,17 +1,12 @@
-# Use a lightweight JDK base image
-FROM openjdk:21-jdk-slim
-
-# Set environment variable for timezone or other configs (optional)
-ENV TZ=Asia/Kolkata
-
-# Set the working directory inside the container
+# Stage 1: Build JAR
+FROM maven:3.9.4-eclipse-temurin-21 AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the JAR file into the container
-COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose the port your app runs on
+# Stage 2: Run the app
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY --from=builder /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Set the default command to run the JAR
 ENTRYPOINT ["java", "-jar", "app.jar"]
