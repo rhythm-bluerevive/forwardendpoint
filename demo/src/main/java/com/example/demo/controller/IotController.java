@@ -1,39 +1,35 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.IotDataResponse;
 import com.example.demo.dto.IotPayloadDTO;
-import com.example.demo.service.IotDataService;
+import com.example.demo.service.DeviceDataService;
+import com.example.demo.service.ReverseGeocodingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/iot")
+@RequiredArgsConstructor
 public class IotController {
 
-    private final IotDataService iotDataService;
+    private final DeviceDataService deviceDataService;
+    private final ReverseGeocodingService reverseGeocodingService;
 
-    public IotController(IotDataService iotDataService) {
-        this.iotDataService = iotDataService;
-    }
-
+    // ✅ POST: Receive and route incoming payload
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadIotData(@RequestBody IotPayloadDTO dto) {
-        iotDataService.saveIotPayload(dto);
-        return ResponseEntity.ok("Data saved successfully");
+    public ResponseEntity<String> uploadDeviceData(@RequestBody IotPayloadDTO dto) {
+        // 1. Insert into dynamic per-device table
+        deviceDataService.saveDeviceData(dto);
+
+        // 2. Save location only if not already stored
+        reverseGeocodingService.saveLocationIfNew(dto.getDeviceId(), dto.getLatitude(), dto.getLongitude());
+
+        return ResponseEntity.ok("✅ Payload stored for " + dto.getDeviceId());
     }
 
-    @GetMapping("/data")
-    public ResponseEntity<IotDataResponse> getAllIotData() {
-        return ResponseEntity.ok(iotDataService.getSegregatedData());
+    // Optional: Quick health check
+    @GetMapping("/")
+    public String health() {
+        return "✅ IoT Middleware is running";
     }
-
-    @RestController
-    public class HealthController {
-
-        @GetMapping("/")
-        public String health() {
-            return "✅ ForwardEndpoint is running!";
-        }
-    }
-
 }

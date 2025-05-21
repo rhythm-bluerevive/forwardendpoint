@@ -65,6 +65,14 @@
 			<scope>provided</scope>
 		</dependency>
 
+
+		<!-- Dynamic table creation -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+
+
 		<!-- Spring Boot Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
