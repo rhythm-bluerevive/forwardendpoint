@@ -12,7 +12,7 @@ public class DeviceDataService {
     private final JdbcTemplate jdbcTemplate;
 
     public void saveDeviceData(IotPayloadDTO dto) {
-        String table = dto.getDeviceId().toLowerCase();
+        String table = dto.getDeviceId().toLowerCase().replace("-", "_");
 
         // 1️⃣ Create device table if not exists
         String createTable = String.format("""
