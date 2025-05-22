@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class DeviceDataService {
@@ -56,4 +59,12 @@ public class DeviceDataService {
                 dto.getConnectedToDeviceId()
         );
     }
+
+    public List<Map<String, Object>> fetchDeviceData(String deviceId) {
+        String tableName = deviceId.toLowerCase().replace("-", "_");
+        String sql = "SELECT * FROM " + tableName + " ORDER BY timestamp DESC";
+
+        return jdbcTemplate.queryForList(sql);
+    }
+
 }

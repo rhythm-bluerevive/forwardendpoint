@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -46,4 +47,9 @@ public class ReverseGeocodingService {
             System.err.println("❌ Reverse geocoding failed for device " + deviceId + ": " + e.getMessage());
         }
     }
+
+    public List<Location> getAllLocations() {
+        return locationRepository.findAll();
+    }
+
 }

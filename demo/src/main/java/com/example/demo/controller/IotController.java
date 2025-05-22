@@ -1,11 +1,15 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.IotPayloadDTO;
+import com.example.demo.model.Location;
 import com.example.demo.service.DeviceDataService;
 import com.example.demo.service.ReverseGeocodingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/iot")
@@ -32,4 +36,19 @@ public class IotController {
     public String health() {
         return "✅ IoT Middleware is running";
     }
+
+    @GetMapping("/device/{deviceId}")
+    public ResponseEntity<List<Map<String, Object>>> getDeviceData(@PathVariable String deviceId) {
+        List<Map<String, Object>> data = deviceDataService.fetchDeviceData(deviceId);
+        return ResponseEntity.ok(data);
+    }
+
+
+    @GetMapping("/locations")
+    public ResponseEntity<List<Location>> getAllDeviceLocations() {
+        List<Location> locations = reverseGeocodingService.getAllLocations();
+        return ResponseEntity.ok(locations);
+    }
+
+
 }
