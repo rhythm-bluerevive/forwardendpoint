@@ -51,4 +51,12 @@ public class IotController {
     }
 
 
+    @GetMapping("/device-ids")
+    public ResponseEntity<List<String>> getAllDeviceIds() {
+        List<String> ids = deviceDataService.getAllDeviceTableNames();
+        return ResponseEntity.ok(ids);
+    }
+
+
+
 }

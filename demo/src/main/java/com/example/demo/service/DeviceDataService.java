@@ -4,6 +4,9 @@ import com.example.demo.dto.IotPayloadDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import java.util.stream.Collectors;
+import com.example.demo.repository.LocationRepository;
+
 
 import java.util.List;
 import java.util.Map;
@@ -66,5 +69,19 @@ public class DeviceDataService {
 
         return jdbcTemplate.queryForList(sql);
     }
+
+
+    private final LocationRepository locationRepository;
+
+
+
+    public List<String> getAllDeviceTableNames() {
+        return locationRepository.findAllDeviceIds()
+                .stream()
+                .map(id -> id.toLowerCase().replace("-", "_"))
+                .collect(Collectors.toList());
+    }
+
+
 
 }
