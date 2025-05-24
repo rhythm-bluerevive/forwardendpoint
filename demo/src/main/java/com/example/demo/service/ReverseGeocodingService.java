@@ -31,12 +31,28 @@ public class ReverseGeocodingService {
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             Map<String, String> address = (Map<String, String>) response.get("address");
 
+            // Debug: print all address components to console (optional)
+//            System.out.println("Full address response for " + deviceId + ": " + address);
+
             Location location = new Location();
             location.setDeviceId(deviceId);
             location.setLatitude(latitude);
             location.setLongitude(longitude);
-            location.setCity(address.getOrDefault("city", address.getOrDefault("town", "N/A")));
-            location.setDistrict(address.getOrDefault("county", "N/A"));
+
+            location.setCity(
+                    address.getOrDefault("city",
+                            address.getOrDefault("town",
+                                    address.getOrDefault("village", "N/A")))
+            );
+
+            // Enhanced district fallback
+            location.setDistrict(
+                    address.getOrDefault("county",
+                            address.getOrDefault("state_district",
+                                    address.getOrDefault("suburb",
+                                            address.getOrDefault("region", "N/A"))))
+            );
+
             location.setState(address.getOrDefault("state", "N/A"));
             location.setCountry(address.getOrDefault("country", "N/A"));
             location.setPincode(address.getOrDefault("postcode", "N/A"));
@@ -44,12 +60,12 @@ public class ReverseGeocodingService {
             locationRepository.save(location);
 
         } catch (Exception e) {
-            System.err.println("❌ Reverse geocoding failed for device " + deviceId + ": " + e.getMessage());
+            System.err.println(" Reverse geocoding failed for device " + deviceId + ": " + e.getMessage());
         }
     }
 
     public List<Location> getAllLocations() {
         return locationRepository.findAll();
     }
-
 }
+
