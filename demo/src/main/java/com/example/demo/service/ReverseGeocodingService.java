@@ -17,7 +17,7 @@ public class ReverseGeocodingService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public void saveLocationIfNew(String deviceId, double latitude, double longitude) {
-        // ✅ Only run geocoding if deviceId is new
+        // Only run geocoding if deviceId is new
         if (locationRepository.existsById(deviceId)) {
             return;
         }
@@ -32,7 +32,7 @@ public class ReverseGeocodingService {
             Map<String, String> address = (Map<String, String>) response.get("address");
 
             // Debug: print all address components to console (optional)
-//            System.out.println("Full address response for " + deviceId + ": " + address);
+            System.out.println("Full address response for " + deviceId + ": " + address);
 
             Location location = new Location();
             location.setDeviceId(deviceId);
@@ -45,12 +45,12 @@ public class ReverseGeocodingService {
                                     address.getOrDefault("village", "N/A")))
             );
 
-            // Enhanced district fallback
+            // ✅ Updated district fallback logic
             location.setDistrict(
-                    address.getOrDefault("county",
-                            address.getOrDefault("state_district",
-                                    address.getOrDefault("suburb",
-                                            address.getOrDefault("region", "N/A"))))
+                    address.getOrDefault("city_district",
+                            address.getOrDefault("suburb",
+                                    address.getOrDefault("neighbourhood",
+                                            address.getOrDefault("county", "N/A"))))
             );
 
             location.setState(address.getOrDefault("state", "N/A"));
@@ -68,4 +68,3 @@ public class ReverseGeocodingService {
         return locationRepository.findAll();
     }
 }
-
