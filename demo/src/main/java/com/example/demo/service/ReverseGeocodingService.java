@@ -42,15 +42,22 @@ public class ReverseGeocodingService {
             location.setCity(
                     address.getOrDefault("city",
                             address.getOrDefault("town",
-                                    address.getOrDefault("village", "N/A")))
+                                    address.getOrDefault("village",
+                                            address.getOrDefault("county",
+                                                    address.getOrDefault("state_district", "N/A")
+                                            )
+                                    )
+                            )
+                    )
             );
 
-            // ✅ Updated district fallback logic
+
             location.setDistrict(
                     address.getOrDefault("city_district",
                             address.getOrDefault("suburb",
                                     address.getOrDefault("neighbourhood",
                                             address.getOrDefault("county", "N/A"))))
+
             );
 
             location.setState(address.getOrDefault("state", "N/A"));

@@ -19,7 +19,6 @@ public class IotController {
     private final DeviceDataService deviceDataService;
     private final ReverseGeocodingService reverseGeocodingService;
 
-    // ✅ POST: Receive and route incoming payload
     @PostMapping("/upload")
     public ResponseEntity<String> uploadDeviceData(@RequestBody IotPayloadDTO dto) {
         // 1. Insert into dynamic per-device table
@@ -28,13 +27,13 @@ public class IotController {
         // 2. Save location only if not already stored
         reverseGeocodingService.saveLocationIfNew(dto.getDeviceId(), dto.getLatitude(), dto.getLongitude());
 
-        return ResponseEntity.ok("✅ Payload stored for " + dto.getDeviceId());
+        return ResponseEntity.ok("Payload stored for " + dto.getDeviceId());
     }
 
     // Optional: Quick health check
-    @GetMapping("/")
+    @GetMapping()
     public String health() {
-        return "✅ IoT Middleware is running";
+        return "IoT Middleware is running";
     }
 
     @GetMapping("/device/{deviceId}")
@@ -56,7 +55,4 @@ public class IotController {
         List<String> ids = deviceDataService.getAllDeviceTableNames();
         return ResponseEntity.ok(ids);
     }
-
-
-
 }

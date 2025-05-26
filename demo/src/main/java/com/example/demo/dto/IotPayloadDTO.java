@@ -13,15 +13,11 @@ public class IotPayloadDTO {
     private Double longitude;
     private LocalDate installationDate;
     private String boxStatus;
-    private String connectedToDeviceId;  // ✅ NEW FIELD
-
-    // Pipe fields
+    private String connectedToDeviceId;
     private String pipeId;
     private String boxId;
     private Double pipeLength;
     private String valveStatus;
-
-    // Water level fields
     private LocalDateTime timestamp;
     private Double waterLevel;
 }
