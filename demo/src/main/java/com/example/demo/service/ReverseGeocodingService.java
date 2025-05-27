@@ -39,26 +39,56 @@ public class ReverseGeocodingService {
             location.setLatitude(latitude);
             location.setLongitude(longitude);
 
-            location.setCity(
-                    address.getOrDefault("city",
-                            address.getOrDefault("town",
-                                    address.getOrDefault("village",
-                                            address.getOrDefault("county",
-                                                    address.getOrDefault("state_district", "N/A")
-                                            )
-                                    )
-                            )
-                    )
-            );
+            // 🏙️ Set City with logic:
+// Priority: (village + city) > (village + county) > village > town > city > county
+            String village = address.get("village");
+            String town = address.get("town");
+            String city = address.get("city");
+            String county = address.get("county");
+
+            if (village != null) {
+                if (city != null) {
+                    location.setCity(village + ", " + city);
+                } else if (county != null) {
+                    location.setCity(village + ", " + county);
+                } else {
+                    location.setCity(village);
+                }
+            } else if (town != null) {
+                location.setCity(town);
+            } else if (city != null) {
+                location.setCity(city);
+            } else if (county != null) {
+                location.setCity(county);
+            } else {
+                location.setCity("N/A");
+            }
+
+            location.setDistrict(address.getOrDefault("state_district", "N/A"));
 
 
-            location.setDistrict(
-                    address.getOrDefault("city_district",
-                            address.getOrDefault("suburb",
-                                    address.getOrDefault("neighbourhood",
-                                            address.getOrDefault("county", "N/A"))))
+//            location.setCity(
+//                    address.getOrDefault("city",
+//                            address.getOrDefault("town",
+//                                    address.getOrDefault("village",
+//                                            address.getOrDefault("county",
+//                                                    address.getOrDefault("state_district", "N/A")
+//                                            )
+//                                    )
+//                            )
+//                    )
+//            );
+            // district waale me only state district ayega
+            // city waale me village + city + county if they are avaliable merge them
 
-            );
+
+//            location.setDistrict(
+//                    address.getOrDefault("city_district",
+//                            address.getOrDefault("suburb",
+//                                    address.getOrDefault("neighbourhood",
+//                                            address.getOrDefault("county", "N/A"))))
+//
+//            );
 
             location.setState(address.getOrDefault("state", "N/A"));
             location.setCountry(address.getOrDefault("country", "N/A"));
