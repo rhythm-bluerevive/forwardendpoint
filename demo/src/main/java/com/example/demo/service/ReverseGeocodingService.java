@@ -39,8 +39,7 @@ public class ReverseGeocodingService {
             location.setLatitude(latitude);
             location.setLongitude(longitude);
 
-            // 🏙️ Set City with logic:
-// Priority: (village + city) > (village + county) > village > town > city > county
+
             String village = address.get("village");
             String town = address.get("town");
             String city = address.get("city");
@@ -64,31 +63,17 @@ public class ReverseGeocodingService {
                 location.setCity("N/A");
             }
 
-            location.setDistrict(address.getOrDefault("state_district", "N/A"));
+//            location.setDistrict(address.getOrDefault("state_district", "N/A"));
 
+            String district = address.get("state_district");
+            if (district == null || district.isEmpty()) {
+                district = address.get("county");
+                if (district == null || district.isEmpty()) {
+                    district = "N/A";
+                }
+            }
+            location.setDistrict(district);
 
-//            location.setCity(
-//                    address.getOrDefault("city",
-//                            address.getOrDefault("town",
-//                                    address.getOrDefault("village",
-//                                            address.getOrDefault("county",
-//                                                    address.getOrDefault("state_district", "N/A")
-//                                            )
-//                                    )
-//                            )
-//                    )
-//            );
-            // district waale me only state district ayega
-            // city waale me village + city + county if they are avaliable merge them
-
-
-//            location.setDistrict(
-//                    address.getOrDefault("city_district",
-//                            address.getOrDefault("suburb",
-//                                    address.getOrDefault("neighbourhood",
-//                                            address.getOrDefault("county", "N/A"))))
-//
-//            );
 
             location.setState(address.getOrDefault("state", "N/A"));
             location.setCountry(address.getOrDefault("country", "N/A"));

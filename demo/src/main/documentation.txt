@@ -1,0 +1,218 @@
+IoT Device Data Middleware - Documentation
+Project Structure and Component Details
+This Spring Boot application provides a backend service for receiving, storing, and managing data from IoT devices.
+Each core component is organized by package, with clear separation of concerns for maintainability and extensibility.
+
+1. com.example.demo.model
+Location.java
+This class represents the Location entity. It is mapped to the database using JPA annotations.
+
+Fields:
+
+deviceId (String): Acts as the primary key for the Location table. Each device has a unique deviceId.
+
+latitude (Double): The latitude coordinate where the device is installed.
+
+longitude (Double): The longitude coordinate for the device.
+
+city (String): The city or locality as determined by reverse geocoding.
+
+district (String): The administrative district for the device.
+
+state (String): The state or province.
+
+country (String): The country name.
+
+pincode (String): The postal or ZIP code for the device location.
+
+How it works:
+Whenever a new device’s data is uploaded, if the device’s location isn’t already recorded, the application
+uses latitude and longitude to fetch the address and save all these fields in the Location table. This allows for
+easy querying of device deployment geography.
+
+
+
+2. com.example.demo.dto
+IotPayloadDTO.java
+This is a Data Transfer Object (DTO) that defines the expected payload from IoT devices when uploading data. It ensures
+type safety and clarity when accepting device data via the REST API.
+
+Fields:
+
+deviceId (String): Unique identifier of the IoT device.
+
+latitude / longitude (Double): Geographical coordinates sent by the device.
+
+installationDate (LocalDate): The date the device was installed.
+
+boxStatus (String): Status or health of the device box (e.g., "OK", "FAULTY").
+
+connectedToDeviceId (String): If the device is connected to another device, this is the related device's ID.
+
+pipeId / boxId (String): Hardware identifiers for physical components.
+
+pipeLength (Double): Length of the pipe (if relevant).
+
+valveStatus (String): State of the valve ("OPEN", "CLOSED", etc.).
+
+timestamp (LocalDateTime): Exact time of the data reading/event.
+
+waterLevel (Double): Measured water level value at the time of reading.
+
+Usage:
+Whenever the frontend or device gateway sends data to the API, it should match this structure for smooth processing and validation.
+
+
+
+3. com.example.demo.repository
+LocationRepository.java
+This interface extends JpaRepository<Location, String>, providing all standard CRUD operations for Location records.
+
+Custom Method:
+
+findAllDeviceIds(): Uses a custom JPQL query to retrieve all unique device IDs from the Location table. This helps the
+service layer know which devices already have their location registered, which is useful when creating or referencing dynamic tables for incoming data.
+
+Why it matters:
+Using Spring Data JPA repositories streamlines all database operations, minimizing boilerplate code and ensuring efficient data access.
+
+
+
+4. com.example.demo.service
+DeviceDataService.java
+Responsible for all database operations related to dynamic device tables.
+
+Key methods:
+
+saveDeviceData(IotPayloadDTO dto):
+
+Dynamically creates a table for the device if it doesn't exist (table name is based on deviceId, converted to lowercase and underscores).
+
+Uses raw SQL (via JdbcTemplate) for table creation and data insertion, enabling flexible schema management for potentially thousands of devices.
+
+Inserts the data from the DTO, skipping duplicate timestamps to ensure each data entry is unique per device per timestamp.
+
+fetchDeviceData(String deviceId):
+
+Queries the respective device table and returns all data records as a list of maps (one map per row/reading), sorted by the most recent timestamp first.
+
+getAllDeviceTableNames():
+
+Converts all device IDs (from the Location table) into the naming convention used for tables and returns the list.
+
+Typical scenario:
+When a device reports new sensor data, this service ensures that data is stored efficiently and can be easily queried later, even if there are
+thousands of unique devices.
+
+ReverseGeocodingService.java
+Handles all tasks related to determining and storing device locations.
+
+Key methods:
+
+saveLocationIfNew(String deviceId, double latitude, double longitude):
+
+Checks if a Location already exists for the deviceId.
+
+If not, it calls the OpenStreetMap Nominatim API to get a detailed address from the latitude/longitude.
+
+Extracts components like city, district, state, country, and pincode, then saves them as a Location record in the database.
+
+Handles various cases for city-level granularity (village, town, city, or county), providing meaningful fallback values if some address
+parts are missing.
+
+getAllLocations():
+
+Fetches and returns all device locations from the Location table.
+
+Why it’s important:
+Ensures that the backend always knows where each device is physically installed, which is crucial for troubleshooting, deployment tracking, and reporting.
+
+
+
+
+
+5. com.example.demo.controller
+IotController.java
+This is the main REST API controller for all IoT device operations.
+
+Injected Services:
+
+DeviceDataService
+
+ReverseGeocodingService
+
+Endpoints:
+
+POST /api/iot/upload
+Accepts an IotPayloadDTO as JSON, stores the data, and saves the device location if it’s a new device.
+
+GET /api/iot/
+Health check endpoint to verify the server is running.
+
+GET /api/iot/device/{deviceId}
+Retrieves all sensor data for a specific device, sorted by timestamp.
+
+GET /api/iot/locations
+Lists all devices with their geolocations and address information.
+
+GET /api/iot/device-ids
+Returns all device table names, formatted as in the database.
+
+How it works together:
+Devices send their data as POST requests. The controller delegates storage and location logic to the respective services,
+and exposes endpoints for querying device data and metadata.
+
+Typical Data Flow
+A device sends data to POST /api/iot/upload.
+
+Controller processes the request and calls DeviceDataService.saveDeviceData() to store sensor readings.
+
+ReverseGeocodingService.saveLocationIfNew() is called to save the device’s location if it’s not already present in the system.
+
+Data retrieval is handled via /api/iot/device/{deviceId} (for raw sensor data) or /api/iot/locations (for deployment maps/reporting).
+
+Example Usage
+Uploading Device Data:
+
+POST /api/iot/upload
+Content-Type: application/json
+
+{
+  "deviceId": "DEVICE-001",
+  "latitude": 19.07,
+  "longitude": 72.87,
+  "installationDate": "2024-06-01",
+  "boxStatus": "OK",
+  "connectedToDeviceId": "DEVICE-002",
+  "pipeId": "PIPE-01",
+  "boxId": "BOX-01",
+  "pipeLength": 10.5,
+  "valveStatus": "OPEN",
+  "timestamp": "2024-06-01T10:20:30",
+  "waterLevel": 2.7
+}
+Getting device data:
+GET /api/iot/device/DEVICE-001
+
+Listing all device locations:
+GET /api/iot/locations
+
+
+
+
+Deployment and Setup
+Configure PostgreSQL and update the database settings in application.properties.
+
+Build the project using Maven (mvn clean package).
+
+Run the application (java -jar target/yourapp.jar or mvn spring-boot:run).
+
+Use REST clients like Postman or curl to interact with the endpoints.
+
+
+
+
+Key Notes and Limitations
+Each IoT device gets a dedicated table; good for high-ingest scenarios but may require DB tuning for large deployments.
+
+Reverse geocoding uses OpenStreetMap (Nominatim), which can be rate-limited; for production, consider caching or a paid service.
